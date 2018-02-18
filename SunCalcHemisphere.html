@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Sun</title>
 <script src="suncalc.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <style type="text/css">
+#myCanvas
+{
+    display: block;
+    margin: 0 auto;
+}
 </style>
 </head>
 <script>
 
 var deg  = 180 / Math.PI;
-var radius = 150;
+var radius = 200;
 
 function polar(r, al, az, north)
 {
@@ -72,14 +77,14 @@ function DrawHemisphere(context, lat, lng, north)
     
     var times = SunCalc.getTimes(date, lat, lng);
 
-    $("#sunrise").html(times.sunrise.toLocaleTimeString());
-    $("#sunset").html(times.sunset.toLocaleTimeString());
-    $("#time").html(date.toLocaleString());
+    //$("#sunrise").html(times.sunrise.toLocaleTimeString());
+    //$("#sunset").html(times.sunset.toLocaleTimeString());
+    //$("#time").html(date.toLocaleString());
         
     SunPath(context, date, lat, lng, north, 'rgb(255, 219, 26)',5)
    
-    DrawLine(context, times.sunrise, lat, lng, north, 'rgb(255, 219, 26)', "left")
-    DrawLine(context, times.sunset, lat, lng, north, 'rgb(255, 143, 102)', "right")
+    DrawLine(context, times.sunrise, lat, lng, north, 'rgb(255, 219, 26)', "right")
+    DrawLine(context, times.sunset, lat, lng, north, 'rgb(255, 143, 102)', "left")
 
     DrawLine(context, date, lat, lng, north, 'rgb(255, 174, 26)')
 
@@ -89,9 +94,45 @@ function DrawHemisphere(context, lat, lng, north)
 
 }
 
+function DrawAll(context, north)
+{
+    context.beginPath();
+    context.arc(0,0,radius,0,2*Math.PI);
+    context.stroke(); 
+
+    context.beginPath();
+    context.setLineDash([1, 2]);
+    
+    var dirs = ["S","W", "N","E"]
+    for(var i=0;i<4;i++)
+    {
+        context.moveTo(0,0); 
+        
+        p = polar(radius, 0, (i*90)/deg, north)                
+        context.lineTo(p.x,p.y); 
+        
+        p = polar(radius+10, 0, (i*90)/deg, north)                
+        context.fillText(dirs[i],p.x,p.y);
+    }               
+    context.stroke(); 
+
+    context.setLineDash([]);
+
+    if (navigator.geolocation) 
+    {
+        navigator.geolocation.getCurrentPosition(function(position)
+        {                
+            DrawHemisphere(context, position.coords.latitude, position.coords.longitude, north);
+        });
+    } 
+    else 
+    { 
+        DrawHemisphere(0, 0);
+    }
+}
+
 function init()
 {
-
     var myCanvas = document.getElementById("myCanvas");
     var context = myCanvas.getContext('2d');
     
@@ -99,7 +140,7 @@ function init()
         transY = myCanvas.height * 0.5;
 
     context.translate(transX, transY);    
-    
+/*    
     if (window.DeviceOrientationEvent) 
     {
         window.addEventListener('deviceorientation', function(eventData) 
@@ -109,39 +150,19 @@ function init()
             if (eventData.alpha==null)
                 north = 0;
 
-            north = north/deg;
-
-            context.beginPath();
-            context.arc(0,0,radius,0,2*Math.PI);
-            context.stroke(); 
-
-            context.beginPath();
-            context.setLineDash([1, 2]);
+            north += 90;
             
-            for(var i=0;i<4;i++)
-            {
-                context.moveTo(0,0); 
-                
-                p = polar(radius, 0, (i*90+180)/deg, north)                
-                context.lineTo(p.x,p.y); 
-            }               
-            context.stroke(); 
-
-            context.setLineDash([]);
-
-            if (navigator.geolocation) 
-            {
-                navigator.geolocation.getCurrentPosition(function(position)
-                {                
-                    DrawHemisphere(context, position.coords.latitude, position.coords.longitude, north);
-                });
-            } 
-            else 
-            { 
-                DrawHemisphere(0, 0);
-            }
+            north = north/deg;
         })
     }
+*/    
+    context.clearRect(-myCanvas.width*.5, -myCanvas.height*.5, myCanvas.width, myCanvas.height);
+    
+    north = 180/deg;
+    
+    DrawAll(context, north);
+    
+    
 }
 </script>
 
@@ -150,7 +171,7 @@ function init()
 <h1>SunCalc Hemisphere</h1>
 <div id="container">
 </br>
-<canvas id="myCanvas" width="600" height="320"></canvas>
+<canvas id="myCanvas" width="800" height="600"></canvas>
 </br>
 </br>
 </div>
