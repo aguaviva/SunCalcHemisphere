@@ -15,13 +15,13 @@ var radius = 150;
 
 function polar(r, al, az, north)
 {
-    return { x: -r * Math.sin(az) * Math.cos(al), y:r * Math.cos(az) * Math.cos(al)};
+    return { x: -r * Math.sin(az+north) * Math.cos(al), y:r * Math.cos(az+north) * Math.cos(al)};
 }
 
 function DrawLine(context, date, lat, lng, north, color, align)
 {
     var res = SunCalc.getPosition(date, lat, lng)
-    var p = polar(radius, res.altitude, res.azimuth);
+    var p = polar(radius, res.altitude, res.azimuth, north);
     context.beginPath();
     context.strokeStyle = color;
     context.lineWidth=5;
@@ -109,35 +109,37 @@ function init()
             if (eventData.alpha==null)
                 north = 0;
 
-                context.beginPath();
-                context.arc(0,0,radius,0,2*Math.PI);
-                context.stroke(); 
+            north = north/deg;
 
-                context.beginPath();
-                context.setLineDash([1, 2]);
+            context.beginPath();
+            context.arc(0,0,radius,0,2*Math.PI);
+            context.stroke(); 
+
+            context.beginPath();
+            context.setLineDash([1, 2]);
+            
+            for(var i=0;i<4;i++)
+            {
+                context.moveTo(0,0); 
                 
-                for(var i=0;i<4;i++)
-                {
-                    context.moveTo(0,0); 
-                    
-                    p = polar(radius, 0, (i*90+180)/deg, north)                
-                    context.lineTo(p.x,p.y); 
-                }               
-                context.stroke(); 
+                p = polar(radius, 0, (i*90+180)/deg, north)                
+                context.lineTo(p.x,p.y); 
+            }               
+            context.stroke(); 
 
-                context.setLineDash([]);
+            context.setLineDash([]);
 
-                if (navigator.geolocation) 
-                {
-                    navigator.geolocation.getCurrentPosition(function(position)
-                    {                
-                        DrawHemisphere(context, position.coords.latitude, position.coords.longitude);
-                    });
-                } 
-                else 
-                { 
-                    DrawHemisphere(0, 0);
-                }
+            if (navigator.geolocation) 
+            {
+                navigator.geolocation.getCurrentPosition(function(position)
+                {                
+                    DrawHemisphere(context, position.coords.latitude, position.coords.longitude, north);
+                });
+            } 
+            else 
+            { 
+                DrawHemisphere(0, 0);
+            }
         })
     }
 }
