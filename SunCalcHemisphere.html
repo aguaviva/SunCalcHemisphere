@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Sun</title>
+<script src="suncalc.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<style type="text/css">
+</style>
+</head>
+<script>
+
+var deg  = 180 / Math.PI;
+var radius = 150;
+
+function polar(r, al, az, north)
+{
+    return { x: -r * Math.sin(az) * Math.cos(al), y:r * Math.cos(az) * Math.cos(al)};
+}
+
+function DrawLine(context, date, lat, lng, north, color, align)
+{
+    var res = SunCalc.getPosition(date, lat, lng)
+    var p = polar(radius, res.altitude, res.azimuth);
+    context.beginPath();
+    context.strokeStyle = color;
+    context.lineWidth=5;
+    context.moveTo(0,0); 
+    context.lineTo(p.x,p.y); 
+    context.moveTo(p.x,p.y); 
+    
+    if (align)
+    {
+        context.textAlign = align;
+        context.fillText("  "+ date.toLocaleTimeString()+"  ",p.x,p.y);
+    }
+    
+    context.stroke(); 
+}
+
+function SunPath(context, date, lat, lng, north, color, width)
+{    
+    var times = SunCalc.getTimes(date, lat, lng);
+       
+    context.beginPath();
+    context.strokeStyle = color;
+    context.lineWidth=width;
+    for(var i=0;i<=30;i++)
+    {
+        var t = (i/30.0);
+        time = times.sunset * t + times.sunrise * (1.0 - t);
+
+        var res = SunCalc.getPosition(time, lat, lng)
+
+        var p = polar(radius, res.altitude, res.azimuth, north);
+        context.lineTo(p.x,p.y); 
+    }
+    context.stroke();     
+}
+
+Date.prototype.addDays = function(days) {
+  var dat = new Date(this.valueOf());
+  dat.setDate(dat.getDate() + days);
+  return dat;
+}
+
+function DrawHemisphere(context, lat, lng, north)
+{
+    var date = new Date();
+
+    var res = SunCalc.getPosition(date, lat, lng)
+    
+    var times = SunCalc.getTimes(date, lat, lng);
+
+    $("#sunrise").html(times.sunrise.toLocaleTimeString());
+    $("#sunset").html(times.sunset.toLocaleTimeString());
+    $("#time").html(date.toLocaleString());
+        
+    SunPath(context, date, lat, lng, north, 'rgb(255, 219, 26)',5)
+   
+    DrawLine(context, times.sunrise, lat, lng, north, 'rgb(255, 219, 26)', "left")
+    DrawLine(context, times.sunset, lat, lng, north, 'rgb(255, 143, 102)', "right")
+
+    DrawLine(context, date, lat, lng, north, 'rgb(255, 174, 26)')
+
+    var FirstJanuary = new Date(new Date().getFullYear(), 0, 1);    
+    SunPath(context, FirstJanuary.addDays(171.6), lat, lng, north, '#000000', .5)
+    SunPath(context, FirstJanuary.addDays(355.1), lat, lng, north, '#000000', .5)
+
+}
+
+function init()
+{
+
+    var myCanvas = document.getElementById("myCanvas");
+    var context = myCanvas.getContext('2d');
+    
+    var transX = myCanvas.width * 0.5,
+        transY = myCanvas.height * 0.5;
+
+    context.translate(transX, transY);    
+    
+    if (window.DeviceOrientationEvent) 
+    {
+        window.addEventListener('deviceorientation', function(eventData) 
+        {
+            var north = eventData.alpha;
+            
+            if (eventData.alpha==null)
+                north = 0;
+
+                context.beginPath();
+                context.arc(0,0,radius,0,2*Math.PI);
+                context.stroke(); 
+
+                context.beginPath();
+                context.setLineDash([1, 2]);
+                
+                for(var i=0;i<4;i++)
+                {
+                    context.moveTo(0,0); 
+                    
+                    p = polar(radius, 0, (i*90+180)/deg, north)                
+                    context.lineTo(p.x,p.y); 
+                }               
+                context.stroke(); 
+
+                context.setLineDash([]);
+
+                if (navigator.geolocation) 
+                {
+                    navigator.geolocation.getCurrentPosition(function(position)
+                    {                
+                        DrawHemisphere(context, position.coords.latitude, position.coords.longitude);
+                    });
+                } 
+                else 
+                { 
+                    DrawHemisphere(0, 0);
+                }
+        })
+    }
+}
+</script>
+
+
+<body onload="init()">
+<h1>SunCalc Hemisphere</h1>
+<div id="container">
+</br>
+<canvas id="myCanvas" width="600" height="320"></canvas>
+</br>
+</br>
+</div>
+</body>
+</html>
