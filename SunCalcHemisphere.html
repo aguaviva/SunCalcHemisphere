@@ -29,7 +29,7 @@ function DrawLine(context, date, lat, lng, north, color, align)
     context.moveTo(0,0); 
     context.lineTo(p.x,p.y); 
     context.moveTo(p.x,p.y); 
-    
+
     if (align)
     {
         context.textAlign = align;
@@ -75,18 +75,17 @@ function DrawHemisphere(context, lat, lng, north)
        
     SunPath(context, date, lat, lng, north, 'rgb(255, 219, 26)',5)
    
-    DrawLine(context, times.sunrise, lat, lng, north, 'rgb(255, 219, 26)', "right")
-    DrawLine(context, times.sunset, lat, lng, north, 'rgb(255, 143, 102)', "left")
+    DrawLine(context, times.sunrise, lat, lng, north, 'rgb(255, 219, 26)', "left") 
+    DrawLine(context, times.sunset, lat, lng, north, 'rgb(255, 143, 102)', "right")
 
     DrawLine(context, date, lat, lng, north, 'rgb(255, 174, 26)')
 
     var FirstJanuary = new Date(new Date().getFullYear(), 0, 1);    
     SunPath(context, FirstJanuary.addDays(171.6), lat, lng, north, '#000000', .5)
     SunPath(context, FirstJanuary.addDays(355.1), lat, lng, north, '#000000', .5)
-
 }
 
-function DrawAll(context, north)
+function DrawCompass(context, north)
 {
     context.beginPath();
     context.lineWidth=2.5;
@@ -95,6 +94,7 @@ function DrawAll(context, north)
 
     context.beginPath();
     context.setLineDash([1, 2]);
+    context.font="15px sans-serif"
     context.textAlign = "center";    
     var dirs = ["S","W", "N","E"]
     for(var i=0;i<4;i++)
@@ -104,7 +104,7 @@ function DrawAll(context, north)
         p = polar(radius, 0, (i*90)/deg, north)                
         context.lineTo(p.x,p.y); 
         
-        p = polar(radius+10, 0, (i*90)/deg, north)                
+        p = polar(radius*1.05, 0, (i*90)/deg, north)                
         context.fillText(dirs[i],p.x,p.y);
     }               
     context.stroke(); 
@@ -112,53 +112,58 @@ function DrawAll(context, north)
     context.setLineDash([]);
 }
 
+function DrawAll(context, canvas, gpsCoords)
+{
+    var scale = canvas.width/700;
+
+    //set viewport
+    context.setTransform(1, 0, 0, 1, 0, 0);        
+    context.clearRect(0, 0, canvas.width, canvas.height);        
+    context.translate(canvas.width * 0.5, canvas.height * 0.5);    
+    context.scale(scale,scale);   
+
+    north = 0/deg;
+
+    DrawCompass(context, north);    
+
+    DrawHemisphere(context, gpsCoords.latitude, gpsCoords.longitude, north);
+}
+
 function init()
 {
-    window.addEventListener('resize', resizeCanvas, false);
+    window.addEventListener('resize', resizeCanvasAndDraw, false);
     
     var myCanvas = document.getElementById("myCanvas");
+    var context = myCanvas.getContext('2d');
     
-    function resizeCanvas() 
+    var gpsCoords = { latitude:0, longitude:0};
+
+    function resizeCanvasAndDraw() 
     {
-        var context = myCanvas.getContext('2d');
-
-        myCanvas.width = window.innerWidth;
-        myCanvas.height = window.innerHeight;
-        
-        context.clearRect(0, 0, myCanvas.width, myCanvas.height);        
-
-        
-        var transX = myCanvas.width * 0.5,
-            transY = myCanvas.height * 0.5;
-
-        context.translate(transX, transY);    
-        
-        var scale = transX/300;
-        context.scale(scale,scale);   
-        
-        north = 180/deg;
-        
-        DrawAll(context, north);
-
-
-        if (navigator.geolocation) 
+        if (myCanvas.width != window.innerWidth || myCanvas.height != window.innerHeight)
         {
-            navigator.geolocation.getCurrentPosition(function(position)
-            {                
-                DrawHemisphere(context, position.coords.latitude, position.coords.longitude, north);
-            });
-        } 
-        else 
-        { 
-            DrawHemisphere(0, 0);
+            myCanvas.width = window.innerWidth;
+            myCanvas.height = window.innerHeight;
         }
-
-
+        
+        DrawAll(context, myCanvas, gpsCoords)        
     }
-    resizeCanvas();
-    
-    
-    
+
+    if (navigator.geolocation) 
+    {
+        navigator.geolocation.getCurrentPosition(function(position)
+        {                
+            gpsCoords = position.coords;
+            
+            resizeCanvasAndDraw();
+            
+            setInterval(function()
+            {
+                resizeCanvasAndDraw() 
+            }, 1000);
+        });
+    } 
+
 /*    
     if (window.DeviceOrientationEvent) 
     {
