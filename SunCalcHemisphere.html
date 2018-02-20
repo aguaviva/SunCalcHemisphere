@@ -17,6 +17,8 @@ h1 { text-align: center; }
 var deg  = 180 / Math.PI;
 var radius = 200;
 
+var timeStringOptions = { hour: '2-digit', minute: '2-digit' };
+
 function polar(r, al, az, north)
 {
     return { x: -r * Math.sin(az+north) * Math.cos(al), y:r * Math.cos(az+north) * Math.cos(al)};
@@ -36,7 +38,7 @@ function DrawLine(context, date, lat, lng, north, color, align)
     if (align)
     {
         context.textAlign = align;
-        context.fillText("  "+ date.toLocaleTimeString()+"  ",p.x,p.y);
+        context.fillText("  "+ date.toLocaleTimeString(navigator.language, timeStringOptions)+"  ",p.x,p.y);
     }
     
     context.stroke(); 
