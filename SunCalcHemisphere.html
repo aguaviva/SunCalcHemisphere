@@ -13,11 +13,11 @@ h1 { text-align: center; }
 </style>
 </head>
 <script>
-
+  
 var deg  = 180 / Math.PI;
 var radius = 200;
 
-var timeStringOptions = { hour: '2-digit', minute: '2-digit' };
+var timeStringOptions = { hour12:false, hour: '2-digit', minute: '2-digit' };
 
 function polar(r, al, az, north)
 {
@@ -117,12 +117,9 @@ function DrawCompass(context, north)
     context.setLineDash([]);
 }
 
-function DrawAll(context, canvas, gpsCoords, north)
+function DrawAll(context, canvas, scale, gpsCoords, north)
 {
-    var scale = canvas.height/500;
-
     //set viewport
-    context.setTransform(1, 0, 0, 1, 0, 0);        
     context.clearRect(0, 0, canvas.width, canvas.height);        
 
 /*
@@ -135,8 +132,7 @@ function DrawAll(context, canvas, gpsCoords, north)
     context.stroke(); 
 */
 
-    context.translate(Math.floor(canvas.width * 0.5), Math.floor(canvas.height * 0.5));    
-    //context.scale(scale,scale);   
+    //context.translate(Math.floor(canvas.width * 0.5), Math.floor(canvas.height * 0.5));    
     radius = Math.floor(200*scale)
 
     DrawCompass(context, north);    
@@ -150,27 +146,39 @@ function init()
     var myCanvas = document.getElementById("myCanvas");
     var context = myCanvas.getContext('2d');
     
+    var ratio = (window.devicePixelRatio || 1) / (context.webkitBackingStorePixelRatio || context.mozBackingStorePixelRatio || context.msBackingStorePixelRatio || context.oBackingStorePixelRatio || context.backingStorePixelRatio || 1);
+
+
     var gpsCoords = { latitude:0, longitude:0};
 
     function resizeCanvasAndDraw() 
     {
         if (myCanvas.width != window.innerWidth || myCanvas.height != window.innerHeight)
         {
+            var w,h;
+            
             if (window.innerWidth>window.innerHeight)
             {
-                myCanvas.width = window.innerHeight;
-                myCanvas.height = window.innerHeight*.8;
+                w = window.innerHeight;
+                h = window.innerHeight*.8;
             }
             else
             {
-                myCanvas.width = window.innerWidth;
-                myCanvas.height = window.innerWidth*.8;
+                w = window.innerWidth;
+                h = window.innerWidth*.8;
             }
+            myCanvas.width = w * ratio;
+            myCanvas.height = h * ratio;
+            myCanvas.style.width = w + "px";
+            myCanvas.style.height = h + "px";
+            //context.scale(ratio, ratio);   
+            context.setTransform(ratio, 0, 0, ratio, myCanvas.width*.5, myCanvas.height*.5);            
         }
 
-        north = 0/deg;
+        var north = 0/deg;
+        var scale = (myCanvas.height/ratio)/500;
         
-        DrawAll(context, myCanvas, gpsCoords, north)        
+        DrawAll(context, myCanvas, scale, gpsCoords, north)        
     }
 
     if (navigator.geolocation) 
