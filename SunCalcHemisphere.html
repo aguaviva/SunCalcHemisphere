@@ -7,6 +7,9 @@
 <script src="suncalc.js"></script>
 <style type="text/css">
 html, body { width:100%; height:100%; overflow: hidden;} /* just to be sure these are full screen*/
+h1 { text-align: center; }
+#myCanvas { display: block;  margin: 0 auto; }
+#timeslider { width:90%; margin: 0 auto; display: block;
 </style>
 </head>
 <script>
@@ -112,9 +115,9 @@ function DrawCompass(context, north)
     context.setLineDash([]);
 }
 
-function DrawAll(context, canvas, gpsCoords)
+function DrawAll(context, canvas, gpsCoords, north)
 {
-    var scale = canvas.width/700;
+    var scale = canvas.height/500;
 
     //set viewport
     context.setTransform(1, 0, 0, 1, 0, 0);        
@@ -122,10 +125,7 @@ function DrawAll(context, canvas, gpsCoords)
     context.translate(canvas.width * 0.5, canvas.height * 0.5);    
     context.scale(scale,scale);   
 
-    north = 0/deg;
-
     DrawCompass(context, north);    
-
     DrawHemisphere(context, gpsCoords.latitude, gpsCoords.longitude, north);
 }
 
@@ -142,11 +142,21 @@ function init()
     {
         if (myCanvas.width != window.innerWidth || myCanvas.height != window.innerHeight)
         {
-            myCanvas.width = window.innerWidth;
-            myCanvas.height = window.innerHeight;
+            if (window.innerWidth>window.innerHeight)
+            {
+                myCanvas.width = window.innerHeight;
+                myCanvas.height = window.innerHeight*.8;
+            }
+            else
+            {
+                myCanvas.width = window.innerWidth;
+                myCanvas.height = window.innerWidth*.8;
+            }
         }
+
+        north = 0/deg;
         
-        DrawAll(context, myCanvas, gpsCoords)        
+        DrawAll(context, myCanvas, gpsCoords, north)        
     }
 
     if (navigator.geolocation) 
@@ -160,7 +170,7 @@ function init()
             setInterval(function()
             {
                 resizeCanvasAndDraw() 
-            }, 1000);
+            }, 60 * 1000); //update every minute
         });
     } 
 
@@ -180,13 +190,12 @@ function init()
         })
     }
 */    
-    
-    
 }
 </script>
-
-
 <body onload="init()">
+<div id="frame">
+<h1>SunCalc Hemisphere</h1>
 <canvas id="myCanvas" width="800" height="600"></canvas>
+</div>
 </body>
 </html>
