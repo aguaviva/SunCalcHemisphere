@@ -143,42 +143,31 @@ function init()
 {
     window.addEventListener('resize', resizeCanvasAndDraw, false);
     
-    var myCanvas = document.getElementById("myCanvas");
-    var context = myCanvas.getContext('2d');
+    var canvas = document.getElementById("myCanvas");
+    var context = canvas.getContext('2d');
     
+    // adjust canvas to device pixel ratio
     var ratio = (window.devicePixelRatio || 1) / (context.webkitBackingStorePixelRatio || context.mozBackingStorePixelRatio || context.msBackingStorePixelRatio || context.oBackingStorePixelRatio || context.backingStorePixelRatio || 1);
-
 
     var gpsCoords = { latitude:0, longitude:0};
 
     function resizeCanvasAndDraw() 
     {
-        if (myCanvas.width != window.innerWidth || myCanvas.height != window.innerHeight)
-        {
-            var w,h;
-            
-            if (window.innerWidth>window.innerHeight)
-            {
-                w = window.innerHeight;
-                h = window.innerHeight*.8;
-            }
-            else
-            {
-                w = window.innerWidth;
-                h = window.innerWidth*.8;
-            }
-            myCanvas.width = w * ratio;
-            myCanvas.height = h * ratio;
-            myCanvas.style.width = w + "px";
-            myCanvas.style.height = h + "px";
-            //context.scale(ratio, ratio);   
-            context.setTransform(ratio, 0, 0, ratio, myCanvas.width*.5, myCanvas.height*.5);            
-        }
+        var side = (window.innerWidth>window.innerHeight)?window.innerHeight:window.innerWidth;
+
+        var w = side;
+        var h = side *.8;
+
+        canvas.width  = w * ratio;
+        canvas.height = h * ratio;
+        canvas.style.width  = w + "px";
+        canvas.style.height = h + "px";
+        context.setTransform(ratio, 0, 0, ratio, canvas.width*.5, canvas.height*.5);            
 
         var north = 0/deg;
-        var scale = (myCanvas.height/ratio)/500;
+        var scale = h/500;
         
-        DrawAll(context, myCanvas, scale, gpsCoords, north)        
+        DrawAll(context, canvas, scale, gpsCoords, north)        
     }
 
     if (navigator.geolocation) 
