@@ -6,7 +6,7 @@
 <title>Sun</title>
 <script src="suncalc.js"></script>
 <style type="text/css">
-html, body { width:100%; height:100%; overflow: hidden;} /* just to be sure these are full screen*/
+html, body { width:100%; height:100%; overflow: hidden;margin: 0 auto;}  /* just to be sure these are full screen*/
 h1 { text-align: center; }
 #myCanvas { display: block;  margin: 0 auto; }
 #timeslider { width:90%; margin: 0 auto; display: block;
@@ -38,7 +38,7 @@ function DrawLine(context, date, lat, lng, north, color, align)
     if (align)
     {
         context.textAlign = align;
-        context.fillText("  "+ date.toLocaleTimeString(navigator.language, timeStringOptions)+"  ",p.x,p.y);
+        context.fillText("  "+ date.toLocaleTimeString(navigator.language, timeStringOptions)+"  ",Math.floor(p.x),Math.floor(p.y));
     }
     
     context.stroke(); 
@@ -99,7 +99,7 @@ function DrawCompass(context, north)
 
     context.beginPath();
     context.setLineDash([1, 2]);
-    context.font="15px sans-serif"
+    context.font="20px arial"
     context.textAlign = "center";    
     var dirs = ["S","W", "N","E"]
     for(var i=0;i<4;i++)
@@ -109,7 +109,7 @@ function DrawCompass(context, north)
         p = polar(radius, 0, (i*90)/deg, north)                
         context.lineTo(p.x,p.y); 
         
-        p = polar(radius*1.05, 0, (i*90)/deg, north)                
+        p = polar(radius*1.1, 0, (i*90)/deg, north)                
         context.fillText(dirs[i],p.x,p.y);
     }               
     context.stroke(); 
@@ -124,8 +124,20 @@ function DrawAll(context, canvas, gpsCoords, north)
     //set viewport
     context.setTransform(1, 0, 0, 1, 0, 0);        
     context.clearRect(0, 0, canvas.width, canvas.height);        
-    context.translate(canvas.width * 0.5, canvas.height * 0.5);    
-    context.scale(scale,scale);   
+
+/*
+    context.beginPath();
+    context.moveTo(0,0); 
+    context.lineTo(canvas.width,0); 
+    context.lineTo(canvas.width,canvas.height); 
+    context.lineTo(0,canvas.height);     
+    context.lineTo(0,0);     
+    context.stroke(); 
+*/
+
+    context.translate(Math.floor(canvas.width * 0.5), Math.floor(canvas.height * 0.5));    
+    //context.scale(scale,scale);   
+    radius = Math.floor(200*scale)
 
     DrawCompass(context, north);    
     DrawHemisphere(context, gpsCoords.latitude, gpsCoords.longitude, north);
