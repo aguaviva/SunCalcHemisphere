@@ -14,6 +14,7 @@ h1 { text-align: center; }
 </head>
 <script>
   
+
 var deg  = 180 / Math.PI;
 var radius = 200;
 
@@ -117,23 +118,22 @@ function DrawCompass(context, north)
     context.setLineDash([]);
 }
 
-function DrawAll(context, canvas, scale, gpsCoords, north)
+function DrawAll(context, width, height, gpsCoords, north)
 {
     //set viewport
-    context.clearRect(0, 0, canvas.width, canvas.height);        
+    context.clearRect(0, 0, width, height);            
 
-/*
     context.beginPath();
     context.moveTo(0,0); 
-    context.lineTo(canvas.width,0); 
-    context.lineTo(canvas.width,canvas.height); 
-    context.lineTo(0,canvas.height);     
+    context.lineTo(width,0); 
+    context.lineTo(width,height); 
+    context.lineTo(0,height);     
     context.lineTo(0,0);     
     context.stroke(); 
-*/
 
-    //context.translate(Math.floor(canvas.width * 0.5), Math.floor(canvas.height * 0.5));    
-    radius = Math.floor(200*scale)
+    context.translate(width/2, height/2);            
+
+    radius = Math.floor(200*height/500)
 
     DrawCompass(context, north);    
     DrawHemisphere(context, gpsCoords.latitude, gpsCoords.longitude, north);
@@ -146,29 +146,32 @@ function init()
     var canvas = document.getElementById("myCanvas");
     var context = canvas.getContext('2d');
     
-    // adjust canvas to device pixel ratio
-    var ratio = (window.devicePixelRatio || 1) / (context.webkitBackingStorePixelRatio || context.mozBackingStorePixelRatio || context.msBackingStorePixelRatio || context.oBackingStorePixelRatio || context.backingStorePixelRatio || 1);
-
     var gpsCoords = { latitude:0, longitude:0};
 
     function resizeCanvasAndDraw() 
     {
+        // adjust canvas to device pixel ratio    
+        var pixelRatio = (window.devicePixelRatio || 1) / (context.webkitBackingStorePixelRatio || context.mozBackingStorePixelRatio || context.msBackingStorePixelRatio || context.oBackingStorePixelRatio || context.backingStorePixelRatio || 1);
+
         var side = (window.innerWidth>window.innerHeight)?window.innerHeight:window.innerWidth;
 
         var w = side;
         var h = side *.8;
-
-        canvas.width  = w * ratio;
-        canvas.height = h * ratio;
+        
+        document.body.style.width = w + "px";
+        
+        canvas.width  = w * pixelRatio;
+        canvas.height = h * pixelRatio;
         canvas.style.width  = w + "px";
         canvas.style.height = h + "px";
-        context.setTransform(ratio, 0, 0, ratio, canvas.width*.5, canvas.height*.5);            
 
         var north = 0/deg;
-        var scale = h/500;
-        
-        DrawAll(context, canvas, scale, gpsCoords, north)        
+
+        context.scale(pixelRatio, pixelRatio);            
+        DrawAll(context, w, h, gpsCoords, north)        
     }
+
+    resizeCanvasAndDraw();
 
     if (navigator.geolocation) 
     {
@@ -184,6 +187,12 @@ function init()
             }, 60 * 1000); //update every minute
         });
     } 
+
+    setInterval(function()
+    {
+        document.getElementById("time").innerHTML = Date();
+    }, 1000); //update every minute
+
 
 /*    
     if (window.DeviceOrientationEvent) 
@@ -205,8 +214,11 @@ function init()
 </script>
 <body onload="init()">
 <div id="frame">
-<h1>SunCalc Hemisphere</h1>
-<canvas id="myCanvas" width="800" height="600"></canvas>
+<h1 style="text-align: center;">SunCalc Hemisphere</h1>
+<canvas id="myCanvas"></canvas>
+<div style="background-color: lightblue;">
+  <h1 id="time" style="text-align: center;"></h1>
+</div>
 </div>
 </body>
 </html>
