@@ -7,7 +7,6 @@
 <script src="suncalc.js"></script>
 <style type="text/css">
 html, body { width:100%; height:100%; overflow: hidden;margin: 0 auto;}  /* just to be sure these are full screen*/
-h1 { text-align: center; }
 #myCanvas { display: block;  margin: 0 auto; }
 #timeslider { width:90%; margin: 0 auto; display: block;
 </style>
@@ -39,6 +38,7 @@ function DrawLine(context, date, lat, lng, north, color, align)
     if (align)
     {
         context.textAlign = align;
+        context.textBaseline="hanging"; 
         context.fillText("  "+ date.toLocaleTimeString(navigator.language, timeStringOptions)+"  ",Math.floor(p.x),Math.floor(p.y));
     }
     
@@ -101,6 +101,7 @@ function DrawCompass(context, north)
     context.beginPath();
     context.setLineDash([1, 2]);
     context.font="20px arial"
+    context.textBaseline="middle"; 
     context.textAlign = "center";    
     var dirs = ["S","W", "N","E"]
     for(var i=0;i<4;i++)
@@ -110,7 +111,7 @@ function DrawCompass(context, north)
         p = polar(radius, 0, (i*90)/deg, north)                
         context.lineTo(p.x,p.y); 
         
-        p = polar(radius*1.1, 0, (i*90)/deg, north)                
+        p = polar(radius+15, 0, (i*90)/deg, north)                
         context.fillText(dirs[i],p.x,p.y);
     }               
     context.stroke(); 
@@ -213,12 +214,10 @@ function init()
 }
 </script>
 <body onload="init()">
-<div id="frame">
-<h1 style="text-align: center;">SunCalc Hemisphere</h1>
-<canvas id="myCanvas"></canvas>
-<div style="background-color: lightblue;">
-  <h1 id="time" style="text-align: center;"></h1>
-</div>
-</div>
+    <h1 style="text-align: center;">SunCalc Hemisphere</h1>
+    <canvas id="myCanvas"></canvas>
+    <div style="background-color: lightblue;">
+    <h1 id="time" style="text-align: center;"></h1>
+    </div>
 </body>
 </html>
